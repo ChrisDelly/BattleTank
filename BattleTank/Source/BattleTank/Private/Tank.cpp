@@ -5,6 +5,7 @@
 #include "TankBarrel.h"
 #include "Projectile.h"
 #include "TankAimingComponent.h"
+#include "TankMovementComponent.h"
 #include "../Public/Tank.h"
 
 
@@ -23,10 +24,7 @@ ATank::ATank()
 void ATank::BeginPlay()
 {
 	Super::BeginPlay();
-
-
 }
-
 
 // Called to bind functionality to input
 void ATank::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -54,16 +52,18 @@ void ATank::SetTurretReference(UTankTurret * TurretToSet)
 
 void ATank::fire()
 {
+	bool isReloaded=(FPlatformTime::Seconds()-LastFireTime)> ReloadTimeInSeconds;
 
+	if (Barrel && isReloaded)
+	{
+		//Spawn a pojectile at a socket location
+		auto Projectile = GetWorld()->SpawnActor<AProjectile>(
+			ProjectileBlueprint,
+			Barrel->GetSocketLocation(FName("Projectile")),
+			Barrel->GetSocketRotation(FName("Projectile"))
+			);
 
-	if (!Barrel) { return; }
-
-	//Spawn a pojectile at a socket location
-	auto Projectile = GetWorld()->SpawnActor<AProjectile>(
-		ProjectileBlueprint,
-		Barrel->GetSocketLocation(FName("Projectile")),
-		Barrel->GetSocketRotation(FName("Projectile"))
-		);
-
-	Projectile->LaunchProjectile(LaunchSpeed);
+		Projectile->LaunchProjectile(LaunchSpeed);
+		LastFireTime = FPlatformTime::Seconds();
+	}
 }
