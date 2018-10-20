@@ -3,12 +3,23 @@
 #include "TankPlayerController.h"
 #include "Tank.h"
 #include "BattleTank.h"
+#include "TankAimingComponent.h"
 #include "Engine/World.h"
 #include "../Public/TankPlayerController.h"
 
 void ATankPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	auto AimingComponent = GetControlledTank()->FindComponentByClass<UTankAimingComponent>();
+	if(ensure(AimingComponent))
+	{
+		FoundAimingComponent(AimingComponent);
+	}
+	else
+	{
+		UE_LOG(LogTemp,Warning,TEXT("Player controller can't find aiming component at begin play"))
+	}
+	
 }
 
 void ATankPlayerController::Tick(float DeltaTime)
@@ -19,14 +30,13 @@ void ATankPlayerController::Tick(float DeltaTime)
 
 void ATankPlayerController::AimTowardsCrosshair()
 {
-	if (!GetControlledTank()) { return; }
+	if (!ensure(GetControlledTank())) { return; }
 
 	FVector HitLocation; //our parameter	
 	if (GetSightRayHitLocation(HitLocation)) //has a "side-effect", is going to linetrace
 	{
 		GetControlledTank()->AimAt(HitLocation);
-	}
-	
+	}	
 }
 
 //get world location if linetrace through the crosshair,true if hits landscape
